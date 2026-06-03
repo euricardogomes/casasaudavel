@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Método Chama Oculta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a0a10;
+      color: #fff;
+      font-family: 'Lato', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 16px 60px;
+    }
+
+    .headline {
+      max-width: 680px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .headline h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px, 5vw, 40px);
+      line-height: 1.25;
+      color: #fff;
+      font-weight: 900;
+    }
+    .headline h1 em { font-style: normal; color: #e8506a; }
+
+    .video-wrap {
+      width: 100%;
+      max-width: 680px;
+      background: #6b21a8;
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+    }
+    .video-ratio {
+      position: relative;
+      padding-bottom: 56.25%;
+    }
+    .video-ratio iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      pointer-events: none;
+    }
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .play-btn {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 11;
+      pointer-events: none;
+    }
+    .play-circle {
+      width: 72px; height: 72px;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-circle svg { margin-left: 5px; }
+
+    /* POPUP — sem blur, sem animação pesada */
+    #pause-popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(15,4,10,.95);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 24px;
+      gap: 20px;
+    }
+    #pause-popup.show { display: flex; }
+    .popup-icon { font-size: 40px; }
+    .popup-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(18px, 5vw, 24px);
+      color: #fff;
+      line-height: 1.4;
+      max-width: 420px;
+    }
+    .popup-title span { color: #e8506a; }
+    .popup-sub { font-size: 15px; color: rgba(255,255,255,.6); max-width: 360px; line-height: 1.6; }
+    .popup-btn {
+      background: linear-gradient(135deg, #a31697, #661162);
+      color: #fff;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 17px;
+      padding: 16px 40px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      max-width: 360px;
+      touch-action: manipulation;
+    }
+
+    .viewers {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,.5);
+    }
+    .dot-live {
+      width: 8px; height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,.5); }
+      50%      { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+    }
+    .viewers strong { color: #e8506a; }
+
+    #cta-block {
+      display: none;
+      width: 100%;
+      max-width: 680px;
+      margin-top: 28px;
+      text-align: center;
+    }
+    .cta-btn {
+      display: inline-block;
+      width: 100%;
+      max-width: 480px;
+      background: linear-gradient(135deg, #a31697, #661162);
+      color: #fff;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: clamp(16px, 2.5vw, 20px);
+      padding: 20px 32px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      touch-action: manipulation;
+    }
+    .cta-secure { margin-top: 10px; font-size: 12px; color: rgba(255,255,255,.4); }
+
+    footer {
+      margin-top: 48px;
+      font-size: 11px;
+      color: rgba(255,255,255,.25);
+      text-align: center;
+      line-height: 1.8;
+    }
+    footer a { color: rgba(255,255,255,.3); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <div class="headline">
+    <h1>O método que ajuda casais a reacender a chama <em>em menos de 7 dias</em>, mesmo quando o parceiro parece <em>distante e frio.</em></h1>
+  </div>
+
+  <div class="video-wrap">
+    <div class="video-ratio">
+      <iframe
+        id="vimeoIframe"
+        src="https://player.vimeo.com/video/1197519812?controls=0&autoplay=0&api=1&background=0"
+        allow="autoplay; fullscreen"
+        allowfullscreen
+      ></iframe>
+      <div class="video-overlay" id="overlay"></div>
+      <div class="play-btn" id="playBtn">
+        <div class="play-circle">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+            <polygon points="5,3 19,12 5,21"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pause-popup">
+    <div class="popup-icon">⚠️</div>
+    <p class="popup-title">Este vídeo é <span>confidencial</span> e pode ser removido a qualquer momento — o método revelado aqui gerou muita controvérsia.</p>
+    <p class="popup-sub">Não arrisques perder o acesso. Continua a assistir até ao fim.</p>
+    <button class="popup-btn" id="continueBtn">▶&nbsp; Continuar assistindo</button>
+  </div>
+
+  <div class="viewers">
+    <div class="dot-live"></div>
+    Assistindo agora: <strong id="viewerCount">1.240</strong> pessoas
+  </div>
+
+  <div id="cta-block">
+    <a href="https://checkout.escalepay.com/1017817" class="cta-btn">
+      Quero meu relacionamento de volta →
+    </a>
+    <p class="cta-secure">🔒 Pagamento seguro &nbsp;•&nbsp; Acesso imediato &nbsp;•&nbsp; Garantia de 7 dias</p>
+  </div>
+
+  <footer>
+    <a href="#">Termos de Uso</a> &nbsp;|&nbsp;
+    <a href="#">Política de Privacidade</a> &nbsp;|&nbsp;
+    <a href="#">Contato</a><br/>
+    © 2026 Método Chama Oculta. Todos os direitos reservados.
+  </footer>
+
+  <script src="https://player.vimeo.com/api/player.js"></script>
+  <script>
+    const CTA_TIME_SECONDS = 6 * 60 + 35;
+
+    const overlay     = document.getElementById('overlay');
+    const playBtn     = document.getElementById('playBtn');
+    const pausePopup  = document.getElementById('pause-popup');
+    const continueBtn = document.getElementById('continueBtn');
+    const ctaBlock    = document.getElementById('cta-block');
+
+    const player = new Vimeo.Player(document.getElementById('vimeoIframe'));
+
+    let playing  = false;
+    let ctaShown = false;
+
+    // ── Bloqueia skip via evento seeked (leve, não interfere com buffer) ──
+    let lastSafeTime = 0;
+    let isSeeking    = false;
+
+    player.on('timeupdate', (data) => {
+      // Só guarda o tempo — sem chamar nenhuma função pesada
+      if (!isSeeking) lastSafeTime = data.seconds;
+
+      // Mostra CTA (só uma vez)
+      if (!ctaShown && data.seconds >= CTA_TIME_SECONDS) {
+        ctaShown = true;
+        ctaBlock.style.display = 'block';
+      }
+    });
+
+    player.on('seeked', (data) => {
+      if (isSeeking) { isSeeking = false; return; }
+      if (data.seconds > lastSafeTime + 3) {
+        isSeeking = true;
+        player.setCurrentTime(lastSafeTime);
+      }
+    });
+
+    // ── Play / Pause ──
+    function startPlay() {
+      player.play();
+      playBtn.style.display = 'none';
+      playing = true;
+    }
+    function doPause() {
+      player.pause();
+      playing = false;
+      pausePopup.classList.add('show');
+    }
+
+    overlay.addEventListener('click',    () => playing ? doPause() : startPlay());
+    overlay.addEventListener('touchend', (e) => { e.preventDefault(); playing ? doPause() : startPlay(); });
+
+    continueBtn.addEventListener('click',    () => { pausePopup.classList.remove('show'); startPlay(); });
+    continueBtn.addEventListener('touchend', (e) => { e.preventDefault(); pausePopup.classList.remove('show'); startPlay(); });
+
+    // ── Contador viewers ──
+    let viewers = 1240;
+    const viewerEl = document.getElementById('viewerCount');
+    setInterval(() => {
+      viewers += Math.floor(Math.random() * 7) - 3;
+      viewers  = Math.max(1100, Math.min(1500, viewers));
+      viewerEl.textContent = viewers.toLocaleString('pt-BR');
+    }, 4000);
+  </script>
+</body>
+</html>
