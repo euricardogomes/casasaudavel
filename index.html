@@ -191,7 +191,7 @@
     <div class="video-ratio">
       <iframe
         id="vimeoIframe"
-        src="https://player.vimeo.com/video/1197519812?controls=0&autoplay=0&api=1&background=0"
+        src="https://player.vimeo.com/video/1197519812?controls=0&autoplay=1&muted=0&api=1&background=0&playsinline=1"
         allow="autoplay; fullscreen"
         allowfullscreen
       ></iframe>
@@ -234,7 +234,8 @@
 
   <script src="https://player.vimeo.com/api/player.js"></script>
   <script>
-    const CTA_TIME_SECONDS = 6 * 60 + 35;
+    // CTA aparece no momento em que o produto é anunciado no vídeo
+    const CTA_TIME_SECONDS = 5 * 60;
 
     const overlay     = document.getElementById('overlay');
     const playBtn     = document.getElementById('playBtn');
@@ -247,15 +248,12 @@
     let playing  = false;
     let ctaShown = false;
 
-    // ── Bloqueia skip via evento seeked (leve, não interfere com buffer) ──
+    // ── Bloqueia skip ──
     let lastSafeTime = 0;
     let isSeeking    = false;
 
     player.on('timeupdate', (data) => {
-      // Só guarda o tempo — sem chamar nenhuma função pesada
       if (!isSeeking) lastSafeTime = data.seconds;
-
-      // Mostra CTA (só uma vez)
       if (!ctaShown && data.seconds >= CTA_TIME_SECONDS) {
         ctaShown = true;
         ctaBlock.style.display = 'block';
@@ -270,23 +268,51 @@
       }
     });
 
-    // ── Play / Pause ──
+    // ── Autoplay ao carregar ──
+    player.on('loaded', () => {
+      player.play().then(() => {
+        playBtn.style.display = 'none';
+        playing = true;
+      }).catch(() => {
+        // Autoplay bloqueado pelo browser — mostra botão de play
+        playBtn.style.display = 'flex';
+      });
+    });
+
+    // ── Play / Pause com protecção contra toque acidental ──
+    // Só dispara popup se o vídeo estiver a correr há mais de 3 segundos
+    let playStartTime = 0;
+
     function startPlay() {
       player.play();
       playBtn.style.display = 'none';
       playing = true;
+      playStartTime = Date.now();
     }
+
     function doPause() {
+      // Ignora toque se o vídeo começou há menos de 1.5 segundos (toque acidental)
+      if (Date.now() - playStartTime < 1500) return;
       player.pause();
       playing = false;
       pausePopup.classList.add('show');
     }
 
-    overlay.addEventListener('click',    () => playing ? doPause() : startPlay());
-    overlay.addEventListener('touchend', (e) => { e.preventDefault(); playing ? doPause() : startPlay(); });
+    overlay.addEventListener('click', () => playing ? doPause() : startPlay());
+    overlay.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      playing ? doPause() : startPlay();
+    });
 
-    continueBtn.addEventListener('click',    () => { pausePopup.classList.remove('show'); startPlay(); });
-    continueBtn.addEventListener('touchend', (e) => { e.preventDefault(); pausePopup.classList.remove('show'); startPlay(); });
+    continueBtn.addEventListener('click', () => {
+      pausePopup.classList.remove('show');
+      startPlay();
+    });
+    continueBtn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      pausePopup.classList.remove('show');
+      startPlay();
+    });
 
     // ── Contador viewers ──
     let viewers = 1240;
