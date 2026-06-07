@@ -5,6 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Método Chama Oculta</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+
+  <!-- Meta Pixel -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '630227359492444');
+    fbq('track', 'PageView');
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=630227359492444&ev=PageView&noscript=1"/>
+  </noscript>
+  <!-- Fim Meta Pixel -->
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -82,45 +101,7 @@
     }
     .play-circle svg { margin-left: 5px; }
 
-    /* POPUP — sem blur, sem animação pesada */
-    #pause-popup {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      background: rgba(15,4,10,.95);
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 32px 24px;
-      gap: 20px;
-    }
-    #pause-popup.show { display: flex; }
-    .popup-icon { font-size: 40px; }
-    .popup-title {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(18px, 5vw, 24px);
-      color: #fff;
-      line-height: 1.4;
-      max-width: 420px;
-    }
-    .popup-title span { color: #e8506a; }
-    .popup-sub { font-size: 15px; color: rgba(255,255,255,.6); max-width: 360px; line-height: 1.6; }
-    .popup-btn {
-      background: linear-gradient(135deg, #a31697, #661162);
-      color: #fff;
-      font-family: 'Lato', sans-serif;
-      font-weight: 700;
-      font-size: 17px;
-      padding: 16px 40px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      width: 100%;
-      max-width: 360px;
-      touch-action: manipulation;
-    }
+    /* popup removido */
 
     .viewers {
       width: 100%;
@@ -191,7 +172,7 @@
     <div class="video-ratio">
       <iframe
         id="vimeoIframe"
-        src="https://player.vimeo.com/video/1197519812?controls=0&autoplay=1&muted=0&api=1&background=0&playsinline=1"
+        src="https://player.vimeo.com/video/1197519812?controls=0&autoplay=1&muted=1&api=1&background=0&playsinline=1"
         allow="autoplay; fullscreen"
         allowfullscreen
       ></iframe>
@@ -206,12 +187,7 @@
     </div>
   </div>
 
-  <div id="pause-popup">
-    <div class="popup-icon">⚠️</div>
-    <p class="popup-title">Este vídeo é <span>confidencial</span> e pode ser removido a qualquer momento — o método revelado aqui gerou muita controvérsia.</p>
-    <p class="popup-sub">Não arrisques perder o acesso. Continua a assistir até ao fim.</p>
-    <button class="popup-btn" id="continueBtn">▶&nbsp; Continuar assistindo</button>
-  </div>
+  <!-- popup removido -->
 
   <div class="viewers">
     <div class="dot-live"></div>
@@ -234,18 +210,14 @@
 
   <script src="https://player.vimeo.com/api/player.js"></script>
   <script>
-    // CTA aparece no momento em que o produto é anunciado no vídeo
     const CTA_TIME_SECONDS = 5 * 60;
 
     const overlay     = document.getElementById('overlay');
     const playBtn     = document.getElementById('playBtn');
-    const pausePopup  = document.getElementById('pause-popup');
-    const continueBtn = document.getElementById('continueBtn');
     const ctaBlock    = document.getElementById('cta-block');
 
     const player = new Vimeo.Player(document.getElementById('vimeoIframe'));
 
-    let playing  = false;
     let ctaShown = false;
 
     // ── Bloqueia skip ──
@@ -257,6 +229,7 @@
       if (!ctaShown && data.seconds >= CTA_TIME_SECONDS) {
         ctaShown = true;
         ctaBlock.style.display = 'block';
+        fbq('track', 'Lead');
       }
     });
 
@@ -268,51 +241,29 @@
       }
     });
 
-    // ── Autoplay ao carregar ──
+    // ── Autoplay mutado → desmuta automaticamente ──
     player.on('loaded', () => {
       player.play().then(() => {
         playBtn.style.display = 'none';
-        playing = true;
+        // Desmuta após 300ms — funciona em todos os browsers
+        setTimeout(() => { player.setVolume(1); }, 300);
+        fbq('track', 'ViewContent');
       }).catch(() => {
-        // Autoplay bloqueado pelo browser — mostra botão de play
         playBtn.style.display = 'flex';
       });
     });
 
-    // ── Play / Pause com protecção contra toque acidental ──
-    // Só dispara popup se o vídeo estiver a correr há mais de 3 segundos
-    let playStartTime = 0;
-
+    // ── Toque na tela: só serve para dar play se ainda não começou ──
+    // Não pausa — nunca
     function startPlay() {
       player.play();
+      player.setVolume(1);
       playBtn.style.display = 'none';
-      playing = true;
-      playStartTime = Date.now();
+      fbq('track', 'ViewContent');
     }
 
-    function doPause() {
-      // Ignora toque se o vídeo começou há menos de 1.5 segundos (toque acidental)
-      if (Date.now() - playStartTime < 1500) return;
-      player.pause();
-      playing = false;
-      pausePopup.classList.add('show');
-    }
-
-    overlay.addEventListener('click', () => playing ? doPause() : startPlay());
-    overlay.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      playing ? doPause() : startPlay();
-    });
-
-    continueBtn.addEventListener('click', () => {
-      pausePopup.classList.remove('show');
-      startPlay();
-    });
-    continueBtn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      pausePopup.classList.remove('show');
-      startPlay();
-    });
+    overlay.addEventListener('click', () => startPlay());
+    overlay.addEventListener('touchend', (e) => { e.preventDefault(); startPlay(); });
 
     // ── Contador viewers ──
     let viewers = 1240;
@@ -325,3 +276,4 @@
   </script>
 </body>
 </html>
+
