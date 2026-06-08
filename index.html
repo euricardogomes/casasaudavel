@@ -16,12 +16,12 @@
     t.src=v;s=b.getElementsByTagName(e)[0];
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '630227359492444');
+    fbq('init', '1024059546851950');
     fbq('track', 'PageView');
   </script>
   <noscript>
     <img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=630227359492444&ev=PageView&noscript=1"/>
+    src="https://www.facebook.com/tr?id=1024059546851950&ev=PageView&noscript=1"/>
   </noscript>
   <!-- Fim Meta Pixel -->
 
@@ -215,7 +215,7 @@
   </div>
 
   <div id="cta-block">
-    <a href="https://checkout.escalepay.com/1017817" class="cta-btn">
+    <a href="https://checkout.escalepay.com/5787201" class="cta-btn" id="ctaBtn">
       ✅ Quero meu relacionamento de volta →
     </a>
     <p class="cta-secure">🔒 Pagamento seguro &nbsp;•&nbsp; Acesso imediato &nbsp;•&nbsp; Garantia de 7 dias</p>
@@ -280,6 +280,11 @@
 
     overlay.addEventListener('click', handleTouch);
     overlay.addEventListener('touchend', (e) => { e.preventDefault(); handleTouch(); });
+
+    // ── Evento de checkout ──
+    document.getElementById('ctaBtn').addEventListener('click', () => {
+      fbq('track', 'InitiateCheckout');
+    });
 
     // ── Contador viewers ──
     let viewers = 1240;
