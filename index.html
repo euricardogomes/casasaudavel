@@ -4,7 +4,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Método Chama Oculta</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/></noscript>
 
   <!-- Meta Pixel -->
   <script>
@@ -74,6 +77,7 @@
       height: 100%;
       border: none;
       pointer-events: none;
+      will-change: transform;
     }
     .video-overlay {
       position: absolute;
@@ -228,10 +232,17 @@
     © 2026 Método Chama Oculta. Todos os direitos reservados.
   </footer>
 
-  <!-- Vimeo Player API -->
-  <script src="https://player.vimeo.com/api/player.js"></script>
+  <!-- Vimeo Player API - carregado de forma assíncrona -->
   <script>
-    const CTA_TIME_SECONDS =  6* 60 + 35;
+    window.addEventListener('load', function() {
+      var s = document.createElement('script');
+      s.src = 'https://player.vimeo.com/api/player.js';
+      s.onload = initVimeoPlayer;
+      document.head.appendChild(s);
+    });
+
+    function initVimeoPlayer() {
+    const CTA_TIME_SECONDS = 6 * 60 + 35;
 
     const overlay  = document.getElementById('overlay');
     const playBtn  = document.getElementById('playBtn');
@@ -294,6 +305,7 @@
       viewers  = Math.max(1100, Math.min(1500, viewers));
       viewerEl.textContent = viewers.toLocaleString('pt-BR');
     }, 4000);
+  } // fim initVimeoPlayer
   </script>
 </body>
 </html>
