@@ -106,6 +106,27 @@
     }
     .play-circle svg { margin-left: 5px; }
 
+    /* Spinner de carregamento */
+    .loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+      z-index: 12;
+    }
+    .loader-spinner {
+      width: 52px; height: 52px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     .sound-tip {
       margin-top: 10px;
       font-size: 12px;
@@ -201,6 +222,9 @@
         allowfullscreen
       ></iframe>
       <div class="video-overlay" id="overlay"></div>
+      <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+      </div>
       <div class="play-btn" id="playBtn">
         <div class="play-circle">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
@@ -247,6 +271,7 @@
     const overlay  = document.getElementById('overlay');
     const playBtn  = document.getElementById('playBtn');
     const ctaBlock = document.getElementById('cta-block');
+    const loader   = document.getElementById('loader');
 
     const player = new Vimeo.Player(document.getElementById('vimeoIframe'));
     let ctaShown = false;
@@ -273,6 +298,7 @@
 
     // ── Autoplay mutado → desmuta automaticamente ──
     player.on('loaded', () => {
+      loader.style.display = 'none';
       player.play().then(() => {
         playBtn.style.display = 'none';
         setTimeout(() => { player.setVolume(1); }, 800);
