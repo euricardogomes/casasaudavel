@@ -9,6 +9,26 @@
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
   <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/></noscript>
 
+  <!-- Redirect para browser externo -->
+  <script>
+    (function() {
+      var ua = navigator.userAgent || '';
+      var isInApp = /Instagram|FBAN|FBAV|FB_IAB|FacebookLite/i.test(ua);
+      if (isInApp) {
+        var url = window.location.href;
+        // Tenta abrir no Chrome (Android)
+        var intentUrl = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+        // Fallback para iOS — abre no Safari
+        var isIOS = /iPhone|iPad|iPod/i.test(ua);
+        if (isIOS) {
+          window.location.href = url + (url.indexOf('?') > -1 ? '&' : '?') + 'openExternalBrowser=1';
+        } else {
+          window.location.href = intentUrl;
+        }
+      }
+    })();
+  </script>
+
   <!-- Meta Pixel -->
   <script>
     !function(f,b,e,v,n,t,s)
@@ -435,6 +455,14 @@
     <p>Se aplicares o método e não vires resultados em 7 dias, devolvemos o teu dinheiro. Sem perguntas, sem burocracia.</p>
   </div>
 
+  <!-- Segundo botão abaixo da garantia -->
+  <div style="width:100%;max-width:480px;margin-top:24px;text-align:center;">
+    <a href="https://checkout.escalepay.com/5787201" class="cta-btn" id="ctaBtn2">
+      ✅ Quero meu relacionamento de volta →
+    </a>
+    <p class="cta-secure">🔒 Pagamento seguro &nbsp;•&nbsp; Acesso imediato &nbsp;•&nbsp; Garantia de 7 dias</p>
+  </div>
+
   <!-- Barra de retenção -->
   <div id="retention-bar">
     🎁 <span>Continua a assistir</span> — os bónus exclusivos são revelados no final!
@@ -522,6 +550,9 @@
 
     // ── Evento de checkout ──
     document.getElementById('ctaBtn').addEventListener('click', () => {
+      fbq('track', 'InitiateCheckout');
+    });
+    document.getElementById('ctaBtn2').addEventListener('click', () => {
       fbq('track', 'InitiateCheckout');
     });
 
